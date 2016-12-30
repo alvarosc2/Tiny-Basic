@@ -84,8 +84,6 @@ int varp;  //variable array pointer
 char source_line[SOURCE_LINE_LENGTH];
 char *psource = source_line;
 
-bool return_flag = false;
-
 int get_char(void);
 void print_nodes(void);
 void print_token(void);
@@ -648,7 +646,10 @@ void statement(void)
 
 		lex();
 		expression1 = expression(); //The line number to jump to
-		
+
+		//we need the next line of source code after the gosub
+		next = index;
+
 		//This piece looks for source line corresponding to the line number to jump
 		index = root;
 		while (index)
@@ -659,11 +660,8 @@ void statement(void)
 			index = index->Sig;
 		}
 
-		index = index->Sig; //we need the next line of source code after the gosub
-		next = index;
-
 		//This code will execute all the instructions in the subroutine
-		while (!return_flag)
+		while (index)
 		{
 			strcpy(source_line, index->e);
 			psource = source_line;
@@ -672,12 +670,11 @@ void statement(void)
 			parser();    
 		}
 
-		return_flag = false;
 		index = next; //restore the original instruction pointer
+		psource = source_line;
 	}
 	else if (stn.token_code == RETURN)
 	{
-		return_flag = true;
 		return;
 	}
 	else if (stn.token_code == CLEAR)
